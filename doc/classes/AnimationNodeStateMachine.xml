@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<class name="AnimationNodeStateMachine" inherits="AnimationRootNode" version="4.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+<class name="AnimationNodeStateMachine" inherits="AnimationRootNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
 	<brief_description>
 		A state machine with multiple [AnimationRootNode]s, used by [AnimationTree].
 	</brief_description>
@@ -181,7 +181,7 @@
 			Seeking to the beginning is treated as seeking to the beginning of the animation in the current state. Transition to the end state, or the absence of transitions in each state, is treated as exiting the state machine.
 		</constant>
 		<constant name="STATE_MACHINE_TYPE_GROUPED" value="2" enum="StateMachineType">
-			This is a grouped state machine that can be controlled from a parent state machine. It does not work on standalone. There must be a state machine with [member state_machine_type] of [constant STATE_MACHINE_TYPE_ROOT] or [constant STATE_MACHINE_TYPE_NESTED] in the parent or ancestor.
+			This is a grouped state machine that can be controlled from a parent state machine. It does not work independently. There must be a state machine with [member state_machine_type] of [constant STATE_MACHINE_TYPE_ROOT] or [constant STATE_MACHINE_TYPE_NESTED] in the parent or ancestor.
 		</constant>
 	</constants>
 </class>

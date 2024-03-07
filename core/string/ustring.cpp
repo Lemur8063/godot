@@ -1762,7 +1762,7 @@ Vector<uint8_t> String::hex_decode() const {
 
 void String::print_unicode_error(const String &p_message, bool p_critical) const {
 	if (p_critical) {
-		print_error(vformat("Unicode parsing error, some characters were replaced with � (U+FFFD): %s", p_message));
+		print_error(vformat(U"Unicode parsing error, some characters were replaced with � (U+FFFD): %s", p_message));
 	} else {
 		print_error(vformat("Unicode parsing error: %s", p_message));
 	}
@@ -2783,12 +2783,13 @@ double String::to_float() const {
 }
 
 uint32_t String::hash(const char *p_cstr) {
+	// static_cast: avoid negative values on platforms where char is signed.
 	uint32_t hashv = 5381;
-	uint32_t c = *p_cstr++;
+	uint32_t c = static_cast<uint8_t>(*p_cstr++);
 
 	while (c) {
 		hashv = ((hashv << 5) + hashv) + c; /* hash * 33 + c */
-		c = *p_cstr++;
+		c = static_cast<uint8_t>(*p_cstr++);
 	}
 
 	return hashv;
@@ -2797,28 +2798,35 @@ uint32_t String::hash(const char *p_cstr) {
 uint32_t String::hash(const char *p_cstr, int p_len) {
 	uint32_t hashv = 5381;
 	for (int i = 0; i < p_len; i++) {
-		hashv = ((hashv << 5) + hashv) + p_cstr[i]; /* hash * 33 + c */
+		// static_cast: avoid negative values on platforms where char is signed.
+		hashv = ((hashv << 5) + hashv) + static_cast<uint8_t>(p_cstr[i]); /* hash * 33 + c */
 	}
 
 	return hashv;
 }
 
 uint32_t String::hash(const wchar_t *p_cstr, int p_len) {
+	// Avoid negative values on platforms where wchar_t is signed. Account for different sizes.
+	using wide_unsigned = std::conditional<sizeof(wchar_t) == 2, uint16_t, uint32_t>::type;
+
 	uint32_t hashv = 5381;
 	for (int i = 0; i < p_len; i++) {
-		hashv = ((hashv << 5) + hashv) + p_cstr[i]; /* hash * 33 + c */
+		hashv = ((hashv << 5) + hashv) + static_cast<wide_unsigned>(p_cstr[i]); /* hash * 33 + c */
 	}
 
 	return hashv;
 }
 
 uint32_t String::hash(const wchar_t *p_cstr) {
+	// Avoid negative values on platforms where wchar_t is signed. Account for different sizes.
+	using wide_unsigned = std::conditional<sizeof(wchar_t) == 2, uint16_t, uint32_t>::type;
+
 	uint32_t hashv = 5381;
-	uint32_t c = *p_cstr++;
+	uint32_t c = static_cast<wide_unsigned>(*p_cstr++);
 
 	while (c) {
 		hashv = ((hashv << 5) + hashv) + c; /* hash * 33 + c */
-		c = *p_cstr++;
+		c = static_cast<wide_unsigned>(*p_cstr++);
 	}
 
 	return hashv;
@@ -3655,6 +3663,23 @@ String String::repeat(int p_count) const {
 	return new_string;
 }
 
+String String::reverse() const {
+	int len = length();
+	if (len <= 1) {
+		return *this;
+	}
+	String new_string;
+	new_string.resize(len + 1);
+
+	const char32_t *src = ptr();
+	char32_t *dst = new_string.ptrw();
+	for (int i = 0; i < len; i++) {
+		dst[i] = src[len - i - 1];
+	}
+	dst[len] = _null;
+	return new_string;
+}
+
 String String::left(int p_len) const {
 	if (p_len < 0) {
 		p_len = length() + p_len;
@@ -3668,7 +3693,9 @@ String String::left(int p_len) const {
 		return *this;
 	}
 
-	return substr(0, p_len);
+	String s;
+	s.copy_from_unchecked(&get_data()[0], p_len);
+	return s;
 }
 
 String String::right(int p_len) const {
@@ -3684,7 +3711,9 @@ String String::right(int p_len) const {
 		return *this;
 	}
 
-	return substr(length() - p_len);
+	String s;
+	s.copy_from_unchecked(&get_data()[length() - p_len], p_len);
+	return s;
 }
 
 char32_t String::unicode_at(int p_idx) const {
@@ -4690,11 +4719,16 @@ String String::property_name_encode() const {
 
 static const char32_t invalid_node_name_characters[] = { '.', ':', '@', '/', '\"', UNIQUE_NODE_PREFIX[0], 0 };
 
-String String::get_invalid_node_name_characters() {
+String String::get_invalid_node_name_characters(bool p_allow_internal) {
 	// Do not use this function for critical validation.
 	String r;
 	const char32_t *c = invalid_node_name_characters;
 	while (*c) {
+		if (p_allow_internal && *c == '@') {
+			c++;
+			continue;
+		}
+
 		if (c != invalid_node_name_characters) {
 			r += " ";
 		}

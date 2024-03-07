@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<class name="InputEventMIDI" inherits="InputEvent" version="4.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+<class name="InputEventMIDI" inherits="InputEvent" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
 	<brief_description>
 		Represents an input event from a MIDI device, such as a piano.
 	</brief_description>
@@ -75,7 +75,7 @@
 			If the message is [constant MIDI_MESSAGE_CONTROL_CHANGE], this indicates the controller value, otherwise this is zero. Controllers include devices such as pedals and levers.
 		</member>
 		<member name="instrument" type="int" setter="set_instrument" getter="get_instrument" default="0">
-			The instrument of this input event. This value ranges from 0 to 127. Refer to the instrument list on the General MIDI wikipedia article to see a list of instruments, except that this value is 0-index, so subtract one from every number on that chart. A standard piano will have an instrument number of 0.
+			The instrument of this input event. This value ranges from 0 to 127. Refer to the instrument list for [url=https://en.wikipedia.org/wiki/General_MIDI#Program_change_events]General MIDI[/url] to see a list of instruments, except that this value is 0-index, so subtract one from every number on that chart. A standard piano will have an instrument number of 0.
 		</member>
 		<member name="message" type="int" setter="set_message" getter="get_message" enum="MIDIMessage" default="0">
 			Returns a value indicating the type of message for this MIDI signal. This is a member of the [enum MIDIMessage] enum.
